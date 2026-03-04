@@ -11,14 +11,17 @@ This system analyzes market questions for potential ambiguity, vagueness, or cla
 - 🎯 **Risk Scoring**: Scores from 0-100 (higher = more ambiguous)
 - 🏷️ **Risk Tags**: Identifies specific ambiguity categories
 - 📝 **Detailed Rationale**: Provides explanations for the assessment
-- 🔧 **Extensible**: Designed for few-shot learning and web search integration
+- 🔧 **File-Based Few-Shot Examples**: Default examples are loaded from `few_shot_examples/examples.json`
+- ♻️ **Hot Reload Friendly**: Updating `examples.json` affects the next analysis call without code changes
+- 🛡️ **Safe Fallback**: Falls back to built-in examples if the JSON file is missing or invalid
+- 🔌 **Extensible**: Designed for web search integration and custom prompt iteration
 
 ## Installation
 
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd AC297r
+cd trueo_ambiguity_risk
 
 # Install dependencies
 pip install -r requirements.txt
@@ -37,6 +40,29 @@ cp .env.example .env
    ZHIPU_API_KEY=your_api_key_here
    ```
 
+### Few-shot Examples
+
+By default, few-shot examples are loaded from `few_shot_examples/examples.json`.
+
+- Edit that file to update the examples used in prompting
+- Changes are picked up on the next call to `analyze_market_prompt(...)` or `python main.py ...`
+- If the file is missing, malformed, or has an invalid structure, the system falls back to built-in examples in `prompts.py`
+
+Example file format:
+
+```json
+[
+  {
+    "question": "Will Apple release a new product this year?",
+    "result": {
+      "risk_score": 70,
+      "risk_tags": ["ambiguous_time", "undefined_term", "vague_condition"],
+      "rationale": "Explain why this question is ambiguous."
+    }
+  }
+]
+```
+
 ## Usage
 
 ### Python API
@@ -52,10 +78,25 @@ print(f"Risk Tags: {result.risk_tags}")
 print(f"Rationale: {result.rationale}")
 ```
 
+To disable few-shot examples:
+
+```python
+result = analyze_market_prompt(
+    "Will OpenAI release a new model in March this year?",
+    use_few_shot=False
+)
+```
+
 ### Command Line
 
 ```bash
 python main.py "Will OpenAI release a new model in March this year?"
+```
+
+To bypass few-shot examples:
+
+```bash
+python main.py "Will OpenAI release a new model in March this year?" --no-few-shot
 ```
 
 ## Output Format
@@ -83,17 +124,17 @@ python main.py "Will OpenAI release a new model in March this year?"
 ## Project Structure
 
 ```
-AC297r/
+trueo_ambiguity_risk/
 ├── PLAN.md              # Design documentation
 ├── README.md            # This file
 ├── requirements.txt     # Python dependencies
 ├── config.py            # Configuration settings
 ├── models.py            # Data models (Pydantic)
-├── prompts.py           # Prompt templates
+├── prompts.py           # Prompt templates and few-shot loading logic
 ├── agent.py             # LLM Agent (GLM-4.7)
 ├── scorer.py            # Risk Scorer
 ├── main.py              # Main entry point
-├── few_shot_examples/   # Few-shot examples (extensible)
+├── few_shot_examples/   # Default few-shot examples loaded at runtime
 └── tests/               # Test cases
     └── test_scorer.py
 ```
@@ -115,7 +156,6 @@ python tests/test_scorer.py --quick
 ## Future Enhancements
 
 - [ ] Web search integration for context enrichment
-- [ ] Custom few-shot examples
 - [ ] Batch processing API
 - [ ] External Retrieval Agent (MCP/Tools)
 

@@ -7,12 +7,14 @@ risk scoring system.
 
 import sys
 import os
+import json
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from main import analyze_market_prompt
 from models import RiskScoreResult
+from config import FEW_SHOT_EXAMPLES_PATH
 
 
 def test_basic_analysis():
@@ -128,6 +130,49 @@ def test_high_risk_question():
     return result
 
 
+def test_few_shot_examples_file():
+    """
+    Test that examples.json exists and follows the expected schema.
+    """
+    print("\n" + "="*60)
+    print("TEST: Few-Shot Examples File Validation")
+    print("="*60)
+
+    assert os.path.exists(FEW_SHOT_EXAMPLES_PATH), "examples.json file is missing"
+
+    with open(FEW_SHOT_EXAMPLES_PATH, "r", encoding="utf-8") as f:
+        examples = json.load(f)
+
+    assert isinstance(examples, list), "examples.json must contain a list"
+    assert len(examples) > 0, "examples.json must contain at least one example"
+
+    for index, example in enumerate(examples, 1):
+        assert isinstance(example, dict), f"Example {index} must be an object"
+        assert "question" in example, f"Example {index} is missing 'question'"
+        assert "result" in example, f"Example {index} is missing 'result'"
+        assert isinstance(example["question"], str), f"Example {index} question must be a string"
+        assert example["question"].strip(), f"Example {index} question must not be empty"
+        assert isinstance(example["result"], dict), f"Example {index} result must be an object"
+
+        result = example["result"]
+        assert "risk_score" in result, f"Example {index} result is missing 'risk_score'"
+        assert "risk_tags" in result, f"Example {index} result is missing 'risk_tags'"
+        assert "rationale" in result, f"Example {index} result is missing 'rationale'"
+        assert isinstance(result["risk_score"], int), f"Example {index} risk_score must be an integer"
+        assert 0 <= result["risk_score"] <= 100, f"Example {index} risk_score must be between 0 and 100"
+        assert isinstance(result["risk_tags"], list), f"Example {index} risk_tags must be a list"
+        assert all(isinstance(tag, str) for tag in result["risk_tags"]), f"Example {index} risk_tags must contain only strings"
+        assert isinstance(result["rationale"], str), f"Example {index} rationale must be a string"
+        assert result["rationale"].strip(), f"Example {index} rationale must not be empty"
+
+    print(f"\n✓ Validated examples file: {FEW_SHOT_EXAMPLES_PATH}")
+    print(f"✓ Example count: {len(examples)}")
+
+    print("\n" + "="*60)
+    print("✅ TEST PASSED: Few-Shot Examples File Validation")
+    print("="*60)
+
+
 def run_all_tests():
     """
     Run all tests and report results.
@@ -137,6 +182,7 @@ def run_all_tests():
     print("="*60)
     
     tests = [
+        ("Few-Shot Examples File", test_few_shot_examples_file),
         ("Basic Analysis", test_basic_analysis),
         ("Output Format", test_output_format),
         ("High Risk Detection", test_high_risk_question),
