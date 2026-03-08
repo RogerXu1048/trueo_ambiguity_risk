@@ -16,6 +16,7 @@ This system analyzes market questions for potential ambiguity, vagueness, or cla
 - 🛡️ **Safe Fallback**: Falls back to built-in examples if the JSON file is missing or invalid
 - 🌐 **Optional Web Search Evidence**: Can enrich scoring with Tavily search evidence when resolution criteria depend on real-world sources
 - ✍️ **Automatic Rewrite Suggestions**: Generates clearer, more resolvable versions of ambiguous market questions
+- 🖥️ **Product Frontend**: Next.js + shadcn/ui interface for analysts and internal ops
 - 🔌 **Extensible**: Designed for web search integration and custom prompt iteration
 
 ## Installation
@@ -89,6 +90,43 @@ The search layer is designed to help with ambiguity scoring, not event predictio
 - dispute risk
 
 ## Usage
+
+### Backend API (FastAPI)
+
+Start the Python API server:
+
+```bash
+uvicorn api_server:app --reload --host 127.0.0.1 --port 8000
+```
+
+Health check:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Main endpoint:
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/analyze \
+  -H "Content-Type: application/json" \
+  -d '{"question":"Will OpenAI release a new model in March this year?"}'
+```
+
+### Web Frontend (Next.js + shadcn/ui)
+
+Start frontend:
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
+
+The frontend talks to `http://127.0.0.1:8000` by default.
+Set `NEXT_PUBLIC_API_BASE_URL` in `web/.env.local` if needed.
 
 ### Web App
 
@@ -261,6 +299,7 @@ If `include_search_debug=True`, the JSON response additionally includes a `searc
 ```
 trueo_ambiguity_risk/
 ├── app.py               # Streamlit frontend
+├── api_server.py        # FastAPI backend for frontend integration
 ├── PLAN.md              # Design documentation
 ├── TODO.md              # Paused and upcoming work items
 ├── README.md            # This file
@@ -273,6 +312,7 @@ trueo_ambiguity_risk/
 ├── main.py              # Main entry point
 ├── search.py            # Tavily search client and evidence formatter
 ├── rewriter.py          # Automatic rewrite suggestion generator
+├── web/                 # Next.js + shadcn/ui frontend
 ├── few_shot_examples/   # Default few-shot examples loaded at runtime
 └── tests/               # Test cases
     ├── test_scorer.py
