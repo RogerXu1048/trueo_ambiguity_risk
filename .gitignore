@@ -13,8 +13,8 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib/
-lib64/
+/lib/
+/lib64/
 parts/
 sdist/
 var/
@@ -49,3 +49,9 @@ htmlcov/
 *.docx
 *.doc
 PLAN.md
+
+# Next.js frontend
+web/node_modules/
+web/.next/
+web/.git_embedded_backup/
+web/.env.local
